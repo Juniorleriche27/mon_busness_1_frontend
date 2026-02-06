@@ -1,18 +1,28 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
 
 const MODE_A = "A";
 const MODE_B = "B";
 const MODE_CV = "CV";
 const MODE_LM = "LM";
+const RATE = 600;
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://portfolio-api-wov6.onrender.com";
+
+const pricing = {
+  A: 29900,
+  B: 59900,
+  CV: 9900,
+  LM: 4900,
+  HOST_MONTH: 2000,
+  HOST_YEAR: 24000,
+  HOST_PROMO: 19900,
+};
 
 const content = {
   A: {
     label: "Portfolio candidat",
     title: "Portfolio candidat, clair et credible",
-    subtitle: "Projets + preuves + competences.",
-    price: "29 900 CFA",
+    subtitle: "Projets, preuves, competences. Simple et efficace.",
     cta: "Demander mon portfolio",
     secondary: "Voir un exemple",
     deliverables: ["Profil + competences", "Projets avec preuves", "Contact rapide"],
@@ -21,8 +31,7 @@ const content = {
   B: {
     label: "Vitrine entreprise",
     title: "Page vitrine entreprise, prete a convertir",
-    subtitle: "Offres + credibilite + contact.",
-    price: "59 900 CFA",
+    subtitle: "Offres, credibilite, contact.",
     cta: "Demander ma vitrine",
     secondary: "Voir des exemples",
     deliverables: ["Page vitrine", "Bloc preuves", "CTA contact"],
@@ -32,23 +41,32 @@ const content = {
     label: "CV professionnel",
     title: "CV moderne et efficace",
     subtitle: "Clair, structure, adapte au poste.",
-    price: "9 900 CFA",
     cta: "Demander mon CV",
     secondary: "Voir un exemple",
     deliverables: ["CV clair", "Mise en page pro", "Conseils ciblage"],
-    steps: ["Infos + experiences", "Rédaction", "Livraison"],
+    steps: ["Infos + experiences", "Redaction", "Livraison"],
   },
   LM: {
     label: "Lettre de motivation",
     title: "Lettre courte et convaincante",
     subtitle: "Impactante, adaptee au poste.",
-    price: "4 900 CFA",
     cta: "Demander ma lettre",
     secondary: "Voir un exemple",
     deliverables: ["Lettre claire", "Argumentaire fort", "Ton pro"],
-    steps: ["Infos + poste", "Rédaction", "Livraison"],
+    steps: ["Infos + poste", "Redaction", "Livraison"],
   },
 };
+
+const formatCfa = (value) => value.toLocaleString("fr-FR");
+const formatUsd = (value) => (value / RATE).toFixed(2);
+
+function priceLabel(mode) {
+  if (mode === MODE_B) {
+    return `A partir de ${formatCfa(pricing.B)} CFA (~$${formatUsd(pricing.B)})`;
+  }
+  const base = pricing[mode];
+  return `${formatCfa(base)} CFA (~$${formatUsd(base)})`;
+}
 
 function ModeSwitch({ mode, onChange }) {
   return (
@@ -77,11 +95,25 @@ export default function Service() {
   const router = useRouter();
   const [notice, setNotice] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
   const [assistantReply, setAssistantReply] = useState("");
   const [assistantLoading, setAssistantLoading] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [sessionId, setSessionId] = useState("");
 
   const examplesRef = useRef(null);
   const formRef = useRef(null);
+
+  useEffect(() => {
+    const existing = window.localStorage.getItem("assistant_session");
+    if (existing) {
+      setSessionId(existing);
+    } else {
+      const id = `sess_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+      window.localStorage.setItem("assistant_session", id);
+      setSessionId(id);
+    }
+  }, []);
 
   const mode = useMemo(() => {
     const queryMode = (router.query.mode || "").toString().toUpperCase();
@@ -120,6 +152,20 @@ export default function Service() {
       const result = await res.json();
       setNotice(`Demande recue. Reference: ${result.id}`);
       if (formEl) formEl.reset();
+
+      // Ask assistant to list missing info (non-blocking)
+      const ask = await fetch(`${API_BASE}/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: sessionId || "", 
+          message: `Analyse ce brief (mode ${mode}) et liste les infos manquantes en 3-5 questions courtes : ${JSON.stringify(data)}`,
+        }),
+      });
+      const askData = await ask.json();
+      if (askData.reply) {
+        setNotice(`${result.id} - Questions utiles: ${askData.reply}`);
+      }
     } catch (err) {
       setNotice(`Erreur d'envoi: ${err.message}. Merci de reessayer.`);
     } finally {
@@ -135,17 +181,22 @@ export default function Service() {
     if (!message) return;
     setAssistantLoading(true);
     setAssistantReply("...");
+    setMessages((prev) => [...prev, { role: "user", text: message }]);
     try {
       const res = await fetch(`${API_BASE}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ session_id: sessionId || "", message }),
       });
       const data = await res.json();
-      setAssistantReply(data.reply || "Bonjour ! Comment puis-je vous aider ?");
+      const reply = data.reply || "Bonjour ! Comment puis-je vous aider ?";
+      setAssistantReply(reply);
+      setMessages((prev) => [...prev, { role: "bot", text: reply }]);
       formEl.reset();
     } catch (err) {
-      setAssistantReply("Erreur. Merci de reessayer.");
+      const fallback = "Erreur. Merci de reessayer.";
+      setAssistantReply(fallback);
+      setMessages((prev) => [...prev, { role: "bot", text: fallback }]);
     } finally {
       setAssistantLoading(false);
     }
@@ -174,7 +225,7 @@ export default function Service() {
                 <div className="card emphasis" key={m}>
                   <h3>{content[m].label}</h3>
                   <p style={{ color: "var(--muted)" }}>{content[m].subtitle}</p>
-                  <div style={{ fontWeight: 700, marginBottom: 10 }}>{content[m].price}</div>
+                  <div style={{ fontWeight: 700, marginBottom: 10 }}>{priceLabel(m)}</div>
                   <button className="btn primary" onClick={() => updateMode(m)}>
                     Continuer
                   </button>
@@ -220,7 +271,13 @@ export default function Service() {
             <span className="logo-badge">Service portfolio</span>
             <h1 className="hero-title">{payload.title}</h1>
             <p className="hero-sub">{payload.subtitle}</p>
-            <div style={{ fontWeight: 700, marginBottom: 12 }}>{payload.price}</div>
+            <div style={{ fontWeight: 700, marginBottom: 12 }}>{priceLabel(mode)}</div>
+            <div style={{ color: "var(--muted)", marginBottom: 8 }}>
+              Hebergement: {formatCfa(pricing.HOST_MONTH)} CFA (~${formatUsd(pricing.HOST_MONTH)}) / mois
+            </div>
+            <div style={{ color: "var(--muted)", marginBottom: 12 }}>
+              Hebergement annuel: {formatCfa(pricing.HOST_YEAR)} CFA (~${formatUsd(pricing.HOST_YEAR)})
+            </div>
             <div className="actions">
               <button className="btn primary" type="button" onClick={() => formRef.current?.scrollIntoView({ behavior: "smooth" })}>
                 {payload.cta}
@@ -267,53 +324,59 @@ export default function Service() {
       </section>
 
       <section className="section" ref={formRef}>
-        <h2>Formulaire</h2>
-        <p className="hero-sub">Remplissez ce que vous avez. Nous pouvons completer ensuite.</p>
+        <h2>Formulaire complet</h2>
+        <p className="hero-sub">Plus le brief est detaille, plus la livraison est rapide.</p>
         <form onSubmit={handleSubmit}>
           {mode === MODE_A && (
             <div className="form-grid">
-              <input className="input" name="full_name" placeholder="Nom complet" />
-              <input className="input" name="country" placeholder="Pays" />
-              <input className="input" name="city" placeholder="Ville" />
-              <input className="input" name="email" placeholder="Email" />
-              <input className="input" name="phone" placeholder="WhatsApp / Telephone" />
-              <input className="input" name="target_role" placeholder="Poste / role vise" />
-              <textarea name="projects" placeholder="Projets / liens" />
+              <input className="input" name="full_name" placeholder="Nom complet" required />
+              <input className="input" name="email" placeholder="Email" required />
+              <input className="input" name="phone" placeholder="WhatsApp / Telephone" required />
+              <input className="input" name="country" placeholder="Pays" required />
+              <input className="input" name="city" placeholder="Ville" required />
+              <input className="input" name="target_role" placeholder="Poste / role vise" required />
+              <input className="input" name="experience_level" placeholder="Niveau (junior, senior)" required />
+              <textarea name="projects" placeholder="Projets (liens + details)" required />
+              <textarea name="skills" placeholder="Competences principales" required />
+              <textarea name="bio" placeholder="Mini bio" required />
             </div>
           )}
           {mode === MODE_B && (
             <div className="form-grid">
-              <input className="input" name="company_name" placeholder="Nom entreprise" />
-              <input className="input" name="sector" placeholder="Activite / secteur" />
-              <input className="input" name="country" placeholder="Pays" />
-              <input className="input" name="city" placeholder="Ville" />
-              <input className="input" name="email" placeholder="Email pro" />
-              <input className="input" name="phone" placeholder="WhatsApp / Telephone" />
-              <textarea name="services" placeholder="Services / produits" />
-              <input className="input" name="service_area" placeholder="Zone de service" />
-              <input className="input" name="hours" placeholder="Horaires" />
-              <input className="input" name="pricing" placeholder="Prix / forfaits" />
+              <input className="input" name="company_name" placeholder="Nom entreprise" required />
+              <input className="input" name="sector" placeholder="Activite / secteur" required />
+              <input className="input" name="country" placeholder="Pays" required />
+              <input className="input" name="city" placeholder="Ville" required />
+              <input className="input" name="email" placeholder="Email pro" required />
+              <input className="input" name="phone" placeholder="WhatsApp / Telephone" required />
+              <textarea name="services" placeholder="Services / produits (3 a 7 items)" required />
+              <textarea name="target_clients" placeholder="Clients cibles" required />
+              <textarea name="goals" placeholder="Objectif principal du site" required />
+              <input className="input" name="budget" placeholder="Budget estime" required />
+              <input className="input" name="deadline" placeholder="Delai souhaite" required />
+              <textarea name="references" placeholder="Sites que vous aimez (liens)" />
               <textarea name="proofs" placeholder="Realisations / references" />
             </div>
           )}
           {mode === MODE_CV && (
             <div className="form-grid">
-              <input className="input" name="full_name" placeholder="Nom complet" />
-              <input className="input" name="email" placeholder="Email" />
-              <input className="input" name="phone" placeholder="WhatsApp / Telephone" />
-              <input className="input" name="target_role" placeholder="Poste vise" />
-              <textarea name="experiences" placeholder="Experiences principales" />
-              <textarea name="skills" placeholder="Competences" />
+              <input className="input" name="full_name" placeholder="Nom complet" required />
+              <input className="input" name="email" placeholder="Email" required />
+              <input className="input" name="phone" placeholder="WhatsApp / Telephone" required />
+              <input className="input" name="target_role" placeholder="Poste vise" required />
+              <textarea name="experience" placeholder="Experiences principales" required />
+              <textarea name="education" placeholder="Formation" required />
+              <textarea name="skills" placeholder="Competences" required />
             </div>
           )}
           {mode === MODE_LM && (
             <div className="form-grid">
-              <input className="input" name="full_name" placeholder="Nom complet" />
-              <input className="input" name="email" placeholder="Email" />
-              <input className="input" name="phone" placeholder="WhatsApp / Telephone" />
-              <input className="input" name="target_role" placeholder="Poste vise" />
-              <textarea name="motivation" placeholder="Pourquoi ce poste ?" />
-              <textarea name="experience" placeholder="Experience pertinente" />
+              <input className="input" name="full_name" placeholder="Nom complet" required />
+              <input className="input" name="email" placeholder="Email" required />
+              <input className="input" name="phone" placeholder="WhatsApp / Telephone" required />
+              <input className="input" name="target_role" placeholder="Poste vise" required />
+              <textarea name="motivation" placeholder="Pourquoi ce poste ?" required />
+              <textarea name="experience" placeholder="Experience pertinente" required />
             </div>
           )}
 
@@ -329,21 +392,36 @@ export default function Service() {
         </form>
       </section>
 
-      <section className="section">
-        <h2>Assistant</h2>
-        <p className="hero-sub">Questions sur nos services uniquement.</p>
-        <form onSubmit={handleAssistant}>
-          <div className="form-grid">
+      {assistantOpen && (
+        <div className="assistant-panel">
+          <div className="assistant-header">
+            <span>Assistant</span>
+            <button className="btn" type="button" onClick={() => setAssistantOpen(false)}>Fermer</button>
+          </div>
+          <div className="assistant-messages">
+            {messages.map((msg, idx) => (
+              <div key={`${msg.role}-${idx}`} className={`assistant-bubble ${msg.role === "user" ? "user" : "bot"}`}>
+                {msg.text}
+              </div>
+            ))}
+            {assistantReply && !messages.length && (
+              <div className="assistant-bubble bot">{assistantReply}</div>
+            )}
+          </div>
+          <form onSubmit={handleAssistant}>
             <input className="input" name="assistant_message" placeholder="Posez votre question" />
-          </div>
-          <div className="actions">
-            <button className="btn primary" type="submit" disabled={assistantLoading}>
-              {assistantLoading ? "En cours..." : "Envoyer"}
-            </button>
-          </div>
-          {assistantReply ? <div className="notice">{assistantReply}</div> : null}
-        </form>
-      </section>
+            <div className="actions">
+              <button className="btn primary" type="submit" disabled={assistantLoading}>
+                {assistantLoading ? "En cours..." : "Envoyer"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      <button className="assistant-button" type="button" onClick={() => setAssistantOpen((v) => !v)}>
+        ?
+      </button>
 
       <div className="footer">© 2026 Mon Portfolio  Tous droits reserves.</div>
     </div>

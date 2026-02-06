@@ -314,3 +314,66 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+
+.assistant-button {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.2);
+  border: none;
+  cursor: pointer;
+  z-index: 9999;
+}
+
+.assistant-panel {
+  position: fixed;
+  right: 20px;
+  bottom: 90px;
+  width: min(360px, 92vw);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 16px;
+  z-index: 9999;
+}
+
+.assistant-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.assistant-messages {
+  max-height: 240px;
+  overflow: auto;
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.assistant-bubble {
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.assistant-bubble.user {
+  background: rgba(15, 118, 110, 0.12);
+  align-self: end;
+}
+
+.assistant-bubble.bot {
+  background: rgba(15, 23, 42, 0.06);
+}

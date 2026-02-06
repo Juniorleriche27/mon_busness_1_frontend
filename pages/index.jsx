@@ -1,29 +1,42 @@
 import { useRouter } from "next/router";
 
+const RATE = 600;
+const pricing = {
+  A: 29900,
+  B: 59900,
+  CV: 9900,
+  LM: 4900,
+  HOST_MONTH: 2000,
+  HOST_YEAR: 24000,
+};
+
+const formatCfa = (value) => value.toLocaleString("fr-FR");
+const formatUsd = (value) => (value / RATE).toFixed(2);
+
 const services = [
   {
     mode: "A",
     title: "Portfolio candidat",
-    subtitle: "Emploi, stage, alternance. Portfolio clair et credible.",
-    price: "29 900 CFA",
+    subtitle: "Emploi, stage, alternance.",
+    price: `${formatCfa(pricing.A)} CFA (~$${formatUsd(pricing.A)})`,
   },
   {
     mode: "B",
     title: "Vitrine entreprise",
-    subtitle: "Page pro pour convertir et recevoir des demandes.",
-    price: "59 900 CFA",
+    subtitle: "Page pro pour convertir.",
+    price: `A partir de ${formatCfa(pricing.B)} CFA (~$${formatUsd(pricing.B)})`,
   },
   {
     mode: "CV",
     title: "CV professionnel",
-    subtitle: "Un CV clair, moderne et efficace.",
-    price: "9 900 CFA",
+    subtitle: "CV clair et moderne.",
+    price: `${formatCfa(pricing.CV)} CFA (~$${formatUsd(pricing.CV)})`,
   },
   {
     mode: "LM",
     title: "Lettre de motivation",
-    subtitle: "Lettre concise, impactante, adaptee au poste.",
-    price: "4 900 CFA",
+    subtitle: "Lettre courte et impactante.",
+    price: `${formatCfa(pricing.LM)} CFA (~$${formatUsd(pricing.LM)})`,
   },
 ];
 
@@ -49,7 +62,7 @@ export default function Home() {
             <h1 className="hero-title">
               Choisissez votre <strong>service</strong>
             </h1>
-            <p className="hero-sub">Simple, direct et rapide. On s occupe du reste.</p>
+            <p className="hero-sub">Simple, direct, efficace.</p>
             <div className="chips">
               <span className="chip">Livraison rapide</span>
               <span className="chip">Message clair</span>
@@ -77,18 +90,17 @@ export default function Home() {
       <section className="section lead">
         <div className="split">
           <div>
-            <h2>Pourquoi nous</h2>
+            <h2>Hebergement</h2>
             <ul className="list">
-              <li>Un rendu professionnel et moderne.</li>
-              <li>Un message clair pour convaincre.</li>
-              <li>Un suivi rapide apres votre brief.</li>
+              <li>{formatCfa(pricing.HOST_MONTH)} CFA (~$${formatUsd(pricing.HOST_MONTH)}) / mois</li>
+              <li>{formatCfa(pricing.HOST_YEAR)} CFA (~$${formatUsd(pricing.HOST_YEAR)}) / an</li>
             </ul>
           </div>
           <div>
             <h2>Process simple</h2>
             <ul className="list">
               <li>Choisissez un service.</li>
-              <li>Remplissez le formulaire (meme partiel).</li>
+              <li>Remplissez le formulaire complet.</li>
               <li>Nous vous contactons rapidement.</li>
             </ul>
           </div>
