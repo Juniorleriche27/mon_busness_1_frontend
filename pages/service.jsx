@@ -36,7 +36,7 @@ const content = {
     cta: "Demander mon CV",
     secondary: "Voir un exemple",
     deliverables: ["CV clair", "Mise en page pro", "Conseils ciblage"],
-    steps: ["Infos + experiences", "Rédaction", "Livraison"],
+    steps: ["Infos + experiences", "RÃ©daction", "Livraison"],
   },
   LM: {
     label: "Lettre de motivation",
@@ -46,7 +46,7 @@ const content = {
     cta: "Demander ma lettre",
     secondary: "Voir un exemple",
     deliverables: ["Lettre claire", "Argumentaire fort", "Ton pro"],
-    steps: ["Infos + poste", "Rédaction", "Livraison"],
+    steps: ["Infos + poste", "RÃ©daction", "Livraison"],
   },
 };
 
@@ -345,7 +345,7 @@ export default function Service() {
         </form>
       </section>
 
-      <div className="footer">© 2026 Mon Portfolio — Tous droits reserves.</div>
+      <div className="footer">Â© 2026 Mon Portfolio Â— Tous droits reserves.</div>
     </div>
   );
-}
+}

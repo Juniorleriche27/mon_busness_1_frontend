@@ -95,7 +95,7 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="footer">© 2026 Mon Portfolio — Tous droits reserves.</div>
+      <div className="footer">Â© 2026 Mon Portfolio Â— Tous droits reserves.</div>
     </div>
   );
-}
+}
