@@ -1,19 +1,31 @@
 import { useRouter } from "next/router";
 
-const variants = {
-  A: {
+const services = [
+  {
+    mode: "A",
     title: "Portfolio candidat",
-    subtitle: "Pour postuler (emploi, stage, alternance) avec des preuves solides.",
-    cta: "Continuer (A)",
-    href: "/service?mode=A",
+    subtitle: "Emploi, stage, alternance. Portfolio clair et credible.",
+    price: "29 900 CFA",
   },
-  B: {
+  {
+    mode: "B",
     title: "Vitrine entreprise",
-    subtitle: "Pour presenter vos offres et generer des demandes qualifiees.",
-    cta: "Continuer (B)",
-    href: "/service?mode=B",
+    subtitle: "Page pro pour convertir et recevoir des demandes.",
+    price: "59 900 CFA",
   },
-};
+  {
+    mode: "CV",
+    title: "CV professionnel",
+    subtitle: "Un CV clair, moderne et efficace.",
+    price: "9 900 CFA",
+  },
+  {
+    mode: "LM",
+    title: "Lettre de motivation",
+    subtitle: "Lettre concise, impactante, adaptee au poste.",
+    price: "4 900 CFA",
+  },
+];
 
 export default function Home() {
   const router = useRouter();
@@ -35,26 +47,26 @@ export default function Home() {
           <div>
             <span className="pill">Choix rapide</span>
             <h1 className="hero-title">
-              Choisissez votre <strong>besoin</strong>
+              Choisissez votre <strong>service</strong>
             </h1>
-            <p className="hero-sub">
-              Deux parcours distincts, deux offres claires. Vous gagnez du temps, et vos visiteurs
-              comprennent en 5 secondes.
-            </p>
+            <p className="hero-sub">Simple, direct et rapide. On s occupe du reste.</p>
             <div className="chips">
-              <span className="chip">Design premium</span>
+              <span className="chip">Livraison rapide</span>
               <span className="chip">Message clair</span>
-              <span className="chip">Conversion rapide</span>
-              <span className="chip">Mobile-first</span>
+              <span className="chip">Design pro</span>
             </div>
           </div>
           <div className="cards">
-            {Object.values(variants).map((card) => (
-              <div className="card emphasis" key={card.title}>
+            {services.map((card) => (
+              <div className="card emphasis" key={card.mode}>
                 <h3>{card.title}</h3>
                 <p style={{ color: "var(--muted)" }}>{card.subtitle}</p>
-                <button className="btn primary" onClick={() => router.push(card.href)}>
-                  {card.cta}
+                <div style={{ fontWeight: 700, marginBottom: 10 }}>{card.price}</div>
+                <button
+                  className="btn primary"
+                  onClick={() => router.push(`/service?mode=${card.mode}`)}
+                >
+                  Continuer
                 </button>
               </div>
             ))}
@@ -65,43 +77,25 @@ export default function Home() {
       <section className="section lead">
         <div className="split">
           <div>
-            <h2>Pourquoi ce choix ?</h2>
+            <h2>Pourquoi nous</h2>
             <ul className="list">
-              <li>Chaque parcours parle directement a son public cible.</li>
-              <li>Un brief plus propre et des infos exploitables rapidement.</li>
-              <li>Un site moderne inspire confiance et augmente le taux de contact.</li>
+              <li>Un rendu professionnel et moderne.</li>
+              <li>Un message clair pour convaincre.</li>
+              <li>Un suivi rapide apres votre brief.</li>
             </ul>
           </div>
           <div>
-            <h2>Ce que vous obtenez</h2>
+            <h2>Process simple</h2>
             <ul className="list">
-              <li>Structure claire, design pro, texte qui convertit.</li>
-              <li>CTA visibles, sections utiles, parcours sans ambiguite.</li>
-              <li>Livraison rapide des qu on a les elements.</li>
+              <li>Choisissez un service.</li>
+              <li>Remplissez le formulaire (meme partiel).</li>
+              <li>Nous vous contactons rapidement.</li>
             </ul>
           </div>
         </div>
       </section>
 
-      <section className="section">
-        <h2>Commencer en 30 secondes</h2>
-        <div className="cards">
-          <div className="card">
-            <strong>1. Choisissez A ou B</strong>
-            <p>Vous accedez au parcours adapte a votre besoin.</p>
-          </div>
-          <div className="card">
-            <strong>2. Remplissez le brief</strong>
-            <p>Indiquez l essentiel. Vous pourrez completer apres.</p>
-          </div>
-          <div className="card">
-            <strong>3. Livraison rapide</strong>
-            <p>Nous preparons et ajustons jusqu a validation.</p>
-          </div>
-        </div>
-      </section>
-
-      <div className="footer">Â© 2026 Mon Portfolio Â— Tous droits reserves.</div>
+      <div className="footer">© 2026 Mon Portfolio — Tous droits reserves.</div>
     </div>
   );
-}
+}
