@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 
 const MODE_A = "A";
 const MODE_B = "B";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://portfolio-api-wov6.onrender.com";
 
 const content = {
   A: {
@@ -69,6 +70,7 @@ function ModeSwitch({ mode, onChange }) {
 export default function Service() {
   const router = useRouter();
   const [notice, setNotice] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const mode = useMemo(() => {
     const queryMode = (router.query.mode || "").toString().toUpperCase();
@@ -81,17 +83,39 @@ export default function Service() {
     router.push(`/service?mode=${nextMode}`);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     if (!mode) {
       setNotice("Merci de choisir un parcours A ou B.");
       return;
     }
-    setNotice(
-      mode === MODE_A
-        ? "Demande candidat recue. Nous revenons vers vous rapidement."
-        : "Demande entreprise recue. Reponse rapide apres analyse des elements."
-    );
+    setSubmitting(true);
+    setNotice("Envoi en cours...");
+    const formData = new FormData(event.currentTarget);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+      const res = await fetch(`${API_BASE}/leads`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode, data }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || "Erreur serveur");
+      }
+      const result = await res.json();
+      setNotice(
+        mode === MODE_A
+          ? `Demande candidat recue. Reference: ${result.id}`
+          : `Demande entreprise recue. Reference: ${result.id}`
+      );
+      event.currentTarget.reset();
+    } catch (err) {
+      setNotice(`Erreur d'envoi: ${err.message}. Merci de reessayer.`);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (!mode) {
@@ -216,44 +240,46 @@ export default function Service() {
 
       <section className="section">
         <h2>Formulaire {mode === MODE_A ? "candidat" : "entreprise"}</h2>
-        <p className="hero-sub">
-          Remplissez ce que vous avez. Nous pouvons completer ensuite.
-        </p>
+        <p className="hero-sub">Remplissez ce que vous avez. Nous pouvons completer ensuite.</p>
         <form onSubmit={handleSubmit}>
           {mode === MODE_A ? (
             <div className="form-grid">
-              <input className="input" placeholder="Nom complet" />
-              <input className="input" placeholder="Pays" />
-              <input className="input" placeholder="Ville" />
-              <input className="input" placeholder="Email" />
-              <input className="input" placeholder="WhatsApp / Telephone" />
-              <input className="input" placeholder="Poste / role vise" />
-              <input className="input" placeholder="Domaine" />
-              <input className="input" placeholder="Langue principale" />
-              <textarea placeholder="2-3 projets (liens/titres)" />
-              <textarea placeholder="Forces cles" />
-              <textarea placeholder="Style souhaite" />
+              <input className="input" name="full_name" placeholder="Nom complet" />
+              <input className="input" name="country" placeholder="Pays" />
+              <input className="input" name="city" placeholder="Ville" />
+              <input className="input" name="email" placeholder="Email" />
+              <input className="input" name="phone" placeholder="WhatsApp / Telephone" />
+              <input className="input" name="target_role" placeholder="Poste / role vise" />
+              <input className="input" name="domain" placeholder="Domaine" />
+              <input className="input" name="language" placeholder="Langue principale" />
+              <textarea name="projects" placeholder="2-3 projets (liens/titres)" />
+              <textarea name="strengths" placeholder="Forces cles" />
+              <textarea name="style" placeholder="Style souhaite" />
             </div>
           ) : (
             <div className="form-grid">
-              <input className="input" placeholder="Nom entreprise" />
-              <input className="input" placeholder="Activite / secteur" />
-              <input className="input" placeholder="Pays" />
-              <input className="input" placeholder="Ville" />
-              <input className="input" placeholder="Email pro" />
-              <input className="input" placeholder="WhatsApp / Telephone" />
-              <textarea placeholder="Services / produits (3 a 7 items)" />
-              <input className="input" placeholder="Zone de service (option)" />
-              <input className="input" placeholder="Horaires (option)" />
-              <input className="input" placeholder="Prix / forfaits (option)" />
-              <textarea placeholder="Realisations / references" />
-              <input className="input" placeholder="Reseaux sociaux (option)" />
-              <input className="input" placeholder="Couleurs (option)" />
+              <input className="input" name="company_name" placeholder="Nom entreprise" />
+              <input className="input" name="sector" placeholder="Activite / secteur" />
+              <input className="input" name="country" placeholder="Pays" />
+              <input className="input" name="city" placeholder="Ville" />
+              <input className="input" name="email" placeholder="Email pro" />
+              <input className="input" name="phone" placeholder="WhatsApp / Telephone" />
+              <textarea name="services" placeholder="Services / produits (3 a 7 items)" />
+              <input className="input" name="service_area" placeholder="Zone de service (option)" />
+              <input className="input" name="hours" placeholder="Horaires (option)" />
+              <input className="input" name="pricing" placeholder="Prix / forfaits (option)" />
+              <textarea name="proofs" placeholder="Realisations / references" />
+              <input className="input" name="socials" placeholder="Reseaux sociaux (option)" />
+              <input className="input" name="colors" placeholder="Couleurs (option)" />
             </div>
           )}
           <div className="actions">
-            <button className="btn primary" type="submit">
-              {mode === MODE_A ? "Envoyer ma demande (candidat)" : "Envoyer ma demande (entreprise)"}
+            <button className="btn primary" type="submit" disabled={submitting}>
+              {submitting
+                ? "Envoi..."
+                : mode === MODE_A
+                ? "Envoyer ma demande (candidat)"
+                : "Envoyer ma demande (entreprise)"}
             </button>
             <a className="btn" href="https://wa.me/22892092572" target="_blank" rel="noreferrer">
               WhatsApp direct
@@ -263,7 +289,7 @@ export default function Service() {
         </form>
       </section>
 
-      <div className="footer">Â© 2026 Mon Portfolio Â— Tous droits reserves.</div>
+      <div className="footer">© 2026 Mon Portfolio — Tous droits reserves.</div>
     </div>
   );
-}
+}
