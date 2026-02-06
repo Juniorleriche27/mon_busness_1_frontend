@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
 
 const MODE_A = "A";
@@ -71,6 +71,8 @@ export default function Service() {
   const router = useRouter();
   const [notice, setNotice] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const examplesRef = useRef(null);
+  const formRef = useRef(null);
 
   const mode = useMemo(() => {
     const queryMode = (router.query.mode || "").toString().toUpperCase();
@@ -198,8 +200,8 @@ export default function Service() {
             <h1 className="hero-title">{payload.title}</h1>
             <p className="hero-sub">{payload.subtitle}</p>
             <div className="actions">
-              <button className="btn primary">{payload.cta}</button>
-              <button className="btn">{payload.secondary}</button>
+              <button className="btn primary" type="button" onClick={() => formRef.current?.scrollIntoView({ behavior: "smooth" })}>{payload.cta}</button>
+              <button className="btn" type="button" onClick={() => examplesRef.current?.scrollIntoView({ behavior: "smooth" })}>{payload.secondary}</button>
             </div>
           </div>
         </div>
@@ -226,7 +228,7 @@ export default function Service() {
         </div>
       </section>
 
-      <section className="section">
+      <section className="section" ref={examplesRef}>
         <h2>Exemples</h2>
         <div className="chips">
           <a className="chip" href="https://www.pieagency.fr/" target="_blank" rel="noreferrer">
@@ -238,7 +240,7 @@ export default function Service() {
         </div>
       </section>
 
-      <section className="section">
+      <section className="section" ref={formRef}>
         <h2>Formulaire {mode === MODE_A ? "candidat" : "entreprise"}</h2>
         <p className="hero-sub">Remplissez ce que vous avez. Nous pouvons completer ensuite.</p>
         <form onSubmit={handleSubmit}>
@@ -292,4 +294,5 @@ export default function Service() {
       <div className="footer">© 2026 Mon Portfolio  Tous droits reserves.</div>
     </div>
   );
-}
+}
+
