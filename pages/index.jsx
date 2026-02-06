@@ -1,4 +1,4 @@
-export default function Home() {
+﻿export default function Home() {
   return (
     <main style={{ fontFamily: "Inter, sans-serif", padding: "40px" }}>
       <h1>Portfolio Web (Front)</h1>
