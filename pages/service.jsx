@@ -87,13 +87,14 @@ export default function Service() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    const formEl = event.currentTarget;
     if (!mode) {
       setNotice("Merci de choisir un parcours A ou B.");
       return;
     }
     setSubmitting(true);
     setNotice("Envoi en cours...");
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(formEl);
     const data = Object.fromEntries(formData.entries());
 
     try {
@@ -112,7 +113,7 @@ export default function Service() {
           ? `Demande candidat recue. Reference: ${result.id}`
           : `Demande entreprise recue. Reference: ${result.id}`
       );
-      event.currentTarget.reset();
+      if (formEl) formEl.reset();
     } catch (err) {
       setNotice(`Erreur d'envoi: ${err.message}. Merci de reessayer.`);
     } finally {
