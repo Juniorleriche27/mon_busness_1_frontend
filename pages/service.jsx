@@ -47,12 +47,12 @@ const content = {
   },
   LM: {
     label: "Lettre de motivation",
-    title: "Lettre courte et convaincante",
-    subtitle: "Impactante, adaptee au poste.",
+    title: "Lettre de motivation",
+    subtitle: "Pour emploi, universite ou bourse.",
     cta: "Demander ma lettre",
     secondary: "Voir un exemple",
-    deliverables: ["Lettre claire", "Argumentaire fort", "Ton pro"],
-    steps: ["Infos + poste", "Redaction", "Livraison"],
+    deliverables: ["Lettre claire", "Structure adaptee", "Ton professionnel"],
+    steps: ["Infos + objectif", "Redaction", "Livraison"],
   },
 };
 
@@ -260,12 +260,16 @@ export default function Service() {
             <h1 className="hero-title">{payload.title}</h1>
             <p className="hero-sub">{payload.subtitle}</p>
             <div style={{ fontWeight: 700, marginBottom: 12 }}>{priceLabel(mode)}</div>
-            <div style={{ color: "var(--muted)", marginBottom: 8 }}>
-              Hebergement: {formatCfa(pricing.HOST_MONTH)} CFA (~${formatUsd(pricing.HOST_MONTH)}) / mois
-            </div>
-            <div style={{ color: "var(--muted)", marginBottom: 12 }}>
-              Hebergement annuel: {formatCfa(pricing.HOST_YEAR)} CFA (~${formatUsd(pricing.HOST_YEAR)})
-            </div>
+            {(mode === MODE_A || mode === MODE_B) && (
+              <>
+                <div style={{ color: "var(--muted)", marginBottom: 8 }}>
+                  Hebergement: {formatCfa(pricing.HOST_MONTH)} CFA (~${formatUsd(pricing.HOST_MONTH)}) / mois
+                </div>
+                <div style={{ color: "var(--muted)", marginBottom: 12 }}>
+                  Hebergement annuel: {formatCfa(pricing.HOST_YEAR)} CFA (~${formatUsd(pricing.HOST_YEAR)})
+                </div>
+              </>
+            )}
             <div className="actions">
               <button className="btn primary" type="button" onClick={() => formRef.current?.scrollIntoView({ behavior: "smooth" })}>
                 {payload.cta}
