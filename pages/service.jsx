@@ -17,6 +17,13 @@ const pricing = {
   HOST_YEAR: 24000,
 };
 
+const serviceOptions = [
+  { id: MODE_A, label: "Portfolio candidat", price: pricing.A },
+  { id: MODE_B, label: "Vitrine entreprise", price: pricing.B },
+  { id: MODE_CV, label: "CV professionnel", price: pricing.CV },
+  { id: MODE_LM, label: "Lettre de motivation", price: pricing.LM },
+];
+
 const content = {
   A: {
     label: "Portfolio candidat",
@@ -90,6 +97,19 @@ function ModeSwitch({ mode, onChange }) {
   );
 }
 
+function formToObject(formData) {
+  const data = {};
+  for (const [key, value] of formData.entries()) {
+    if (key in data) {
+      const current = data[key];
+      data[key] = Array.isArray(current) ? [...current, value] : [current, value];
+    } else {
+      data[key] = value;
+    }
+  }
+  return data;
+}
+
 export default function Service() {
   const router = useRouter();
   const [notice, setNotice] = useState("");
@@ -99,6 +119,7 @@ export default function Service() {
   const [assistantLoading, setAssistantLoading] = useState(false);
   const [messages, setMessages] = useState([]);
   const [sessionId, setSessionId] = useState("");
+  const [extras, setExtras] = useState([]);
 
   const examplesRef = useRef(null);
   const formRef = useRef(null);
@@ -121,9 +142,28 @@ export default function Service() {
   }, [router.query.mode]);
 
   const payload = mode ? content[mode] : null;
+  const basePrice = pricing[mode] || 0;
+  const baseLabel = mode === MODE_B
+    ? `A partir de ${formatCfa(pricing.B)} CFA (~$${formatUsd(pricing.B)})`
+    : `${formatCfa(basePrice)} CFA (~$${formatUsd(basePrice)})`;
+  const extrasTotal = extras.reduce((sum, id) => {
+    const found = serviceOptions.find((item) => item.id === id);
+    return sum + (found ? found.price : 0);
+  }, 0);
+  const totalLabel = mode === MODE_B
+    ? `Total estimatif: a partir de ${formatCfa(basePrice + extrasTotal)} CFA (~$${formatUsd(basePrice + extrasTotal)})`
+    : `Total estimatif: ${formatCfa(basePrice + extrasTotal)} CFA (~$${formatUsd(basePrice + extrasTotal)})`;
 
   const updateMode = (nextMode) => {
     router.push(`/service?mode=${nextMode}`);
+  };
+
+  useEffect(() => {
+    setExtras([]);
+  }, [mode]);
+
+  const toggleExtra = (id) => {
+    setExtras((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
   };
 
   const handleSubmit = async (event) => {
@@ -136,7 +176,11 @@ export default function Service() {
     setSubmitting(true);
     setNotice("Envoi en cours...");
     const formData = new FormData(formEl);
-    const data = Object.fromEntries(formData.entries());
+    const data = formToObject(formData);
+    data.primary_service = mode;
+    data.additional_services = extras;
+    data.estimated_total_cfa = basePrice + extrasTotal;
+    data.estimated_total_usd = formatUsd(basePrice + extrasTotal);
 
     try {
       const res = await fetch(`${API_BASE}/leads`, {
@@ -259,7 +303,7 @@ export default function Service() {
             <span className="logo-badge">Service portfolio</span>
             <h1 className="hero-title">{payload.title}</h1>
             <p className="hero-sub">{payload.subtitle}</p>
-            <div style={{ fontWeight: 700, marginBottom: 12 }}>{priceLabel(mode)}</div>
+            <div style={{ fontWeight: 700, marginBottom: 12 }}>{baseLabel}</div>
             {(mode === MODE_A || mode === MODE_B) && (
               <>
                 <div style={{ color: "var(--muted)", marginBottom: 8 }}>
@@ -319,6 +363,25 @@ export default function Service() {
         <h2>Formulaire complet</h2>
         <p className="hero-sub">Formulaire detaille pour filtrer les demandes serieuses.</p>
         <form onSubmit={handleSubmit}>
+          <div className="section" style={{ marginBottom: 12 }}>
+            <h3>Services souhaites</h3>
+            <p className="hero-sub">Service principal: <strong>{payload.label}</strong></p>
+            <div className="chips">
+              {serviceOptions.filter((item) => item.id !== mode).map((item) => (
+                <label key={item.id} className="chip" style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  <input
+                    type="checkbox"
+                    name="extra_service"
+                    value={item.id}
+                    checked={extras.includes(item.id)}
+                    onChange={() => toggleExtra(item.id)}
+                  />
+                  {item.label} ({formatCfa(item.price)} CFA)
+                </label>
+              ))}
+            </div>
+            <div style={{ marginTop: 8, fontWeight: 700 }}>{totalLabel}</div>
+          </div>
           {mode === MODE_A && (
             <div className="form-grid">
               <input className="input" name="full_name" placeholder="Nom complet" required />
