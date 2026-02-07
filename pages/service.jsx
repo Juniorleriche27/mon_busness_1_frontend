@@ -15,7 +15,6 @@ const pricing = {
   LM: 4900,
   HOST_MONTH: 2000,
   HOST_YEAR: 24000,
-  HOST_PROMO: 19900,
 };
 
 const content = {
@@ -150,22 +149,11 @@ export default function Service() {
         throw new Error(err.detail || "Erreur serveur");
       }
       const result = await res.json();
-      setNotice(`Demande recue. Reference: ${result.id}`);
+      const followup = result.missing_questions && result.missing_questions.length
+        ? `\nQuestions utiles: ${result.missing_questions.join(" | ")}`
+        : "";
+      setNotice(`Demande recue. Reference: ${result.id}.${followup}`);
       if (formEl) formEl.reset();
-
-      // Ask assistant to list missing info (non-blocking)
-      const ask = await fetch(`${API_BASE}/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id: sessionId || "", 
-          message: `Analyse ce brief (mode ${mode}) et liste les infos manquantes en 3-5 questions courtes : ${JSON.stringify(data)}`,
-        }),
-      });
-      const askData = await ask.json();
-      if (askData.reply) {
-        setNotice(`${result.id} - Questions utiles: ${askData.reply}`);
-      }
     } catch (err) {
       setNotice(`Erreur d'envoi: ${err.message}. Merci de reessayer.`);
     } finally {
@@ -325,7 +313,7 @@ export default function Service() {
 
       <section className="section" ref={formRef}>
         <h2>Formulaire complet</h2>
-        <p className="hero-sub">Plus le brief est detaille, plus la livraison est rapide.</p>
+        <p className="hero-sub">Formulaire detaille pour filtrer les demandes serieuses.</p>
         <form onSubmit={handleSubmit}>
           {mode === MODE_A && (
             <div className="form-grid">
@@ -339,6 +327,21 @@ export default function Service() {
               <textarea name="projects" placeholder="Projets (liens + details)" required />
               <textarea name="skills" placeholder="Competences principales" required />
               <textarea name="bio" placeholder="Mini bio" required />
+              <textarea name="achievements" placeholder="Realisations / resultats" required />
+              <textarea name="tools" placeholder="Outils utilises" required />
+              <textarea name="education" placeholder="Formation" required />
+              <textarea name="certifications" placeholder="Certifications (si applicable)" />
+              <textarea name="assets_links" placeholder="Liens CV/Drive/LinkedIn" required />
+              <select name="hosting_option" className="input" required>
+                <option value="">Hebergement</option>
+                <option value="none">Aucun</option>
+                <option value="monthly">Mensuel</option>
+                <option value="yearly">Annuel</option>
+              </select>
+              <input className="input" name="deadline" placeholder="Delai souhaite" required />
+              <label style={{ fontSize: 13 }}>
+                <input type="checkbox" name="consent" required /> J accepte d etre recontacte
+              </label>
             </div>
           )}
           {mode === MODE_B && (
@@ -352,10 +355,23 @@ export default function Service() {
               <textarea name="services" placeholder="Services / produits (3 a 7 items)" required />
               <textarea name="target_clients" placeholder="Clients cibles" required />
               <textarea name="goals" placeholder="Objectif principal du site" required />
+              <textarea name="value_prop" placeholder="Proposition de valeur" required />
+              <textarea name="pages" placeholder="Pages souhaitees" required />
               <input className="input" name="budget" placeholder="Budget estime" required />
               <input className="input" name="deadline" placeholder="Delai souhaite" required />
               <textarea name="references" placeholder="Sites que vous aimez (liens)" />
               <textarea name="proofs" placeholder="Realisations / references" />
+              <textarea name="branding" placeholder="Logo/charte (lien)" required />
+              <textarea name="assets_links" placeholder="Photos/visuels (liens)" required />
+              <select name="hosting_option" className="input" required>
+                <option value="">Hebergement</option>
+                <option value="none">Aucun</option>
+                <option value="monthly">Mensuel</option>
+                <option value="yearly">Annuel</option>
+              </select>
+              <label style={{ fontSize: 13 }}>
+                <input type="checkbox" name="consent" required /> J accepte d etre recontacte
+              </label>
             </div>
           )}
           {mode === MODE_CV && (
@@ -364,9 +380,16 @@ export default function Service() {
               <input className="input" name="email" placeholder="Email" required />
               <input className="input" name="phone" placeholder="WhatsApp / Telephone" required />
               <input className="input" name="target_role" placeholder="Poste vise" required />
+              <input className="input" name="country" placeholder="Pays" required />
               <textarea name="experience" placeholder="Experiences principales" required />
               <textarea name="education" placeholder="Formation" required />
               <textarea name="skills" placeholder="Competences" required />
+              <textarea name="achievements" placeholder="Realisations" required />
+              <textarea name="assets_links" placeholder="Liens docs/Drive" required />
+              <input className="input" name="deadline" placeholder="Delai souhaite" required />
+              <label style={{ fontSize: 13 }}>
+                <input type="checkbox" name="consent" required /> J accepte d etre recontacte
+              </label>
             </div>
           )}
           {mode === MODE_LM && (
@@ -375,8 +398,15 @@ export default function Service() {
               <input className="input" name="email" placeholder="Email" required />
               <input className="input" name="phone" placeholder="WhatsApp / Telephone" required />
               <input className="input" name="target_role" placeholder="Poste vise" required />
+              <input className="input" name="company_name" placeholder="Entreprise cible" required />
+              <textarea name="job_link" placeholder="Lien offre ou description" required />
               <textarea name="motivation" placeholder="Pourquoi ce poste ?" required />
               <textarea name="experience" placeholder="Experience pertinente" required />
+              <textarea name="achievements" placeholder="Realisations" required />
+              <input className="input" name="deadline" placeholder="Delai souhaite" required />
+              <label style={{ fontSize: 13 }}>
+                <input type="checkbox" name="consent" required /> J accepte d etre recontacte
+              </label>
             </div>
           )}
 
@@ -423,7 +453,7 @@ export default function Service() {
         ?
       </button>
 
-      <div className="footer">© 2026 Mon Portfolio  Tous droits reserves.</div>
+      <div className="footer">? 2026 Mon Portfolio ? Tous droits reserves.</div>
     </div>
   );
-}
+}
