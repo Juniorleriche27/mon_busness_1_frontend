@@ -196,7 +196,8 @@ export default function Service() {
       const followup = result.missing_questions && result.missing_questions.length
         ? `\nQuestions utiles: ${result.missing_questions.join(" | ")}`
         : "";
-      setNotice(`Demande recue. Reference: ${result.id}.${followup}`);
+      const emailInfo = result.email_status ? `\nEmail: ${result.email_status}` : "";
+      setNotice(`Demande recue. Reference: ${result.id}.${followup}${emailInfo}`);
       if (formEl) formEl.reset();
     } catch (err) {
       setNotice(`Erreur d'envoi: ${err.message}. Merci de reessayer.`);
