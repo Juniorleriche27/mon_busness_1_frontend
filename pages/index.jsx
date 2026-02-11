@@ -44,7 +44,7 @@ export default function HomePage() {
           <div className="hero-kpi-grid">
             <article>
               <strong>{SERVICES.length} services</strong>
-              <span>{SERVICE_CATEGORIES.map((cat) => cat.label).join(" · ")}</span>
+              <span>{SERVICE_CATEGORIES.map((cat) => cat.label).join(" Â· ")}</span>
             </article>
             <article>
               <strong>24h - 72h</strong>
@@ -116,4 +116,4 @@ export default function HomePage() {
       <footer className="footer-note">2026 Mon Portfolio Studio. Brief complet = execution plus rapide.</footer>
     </main>
   );
-}
+}
