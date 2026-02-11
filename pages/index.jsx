@@ -82,13 +82,58 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="hero-visual floaty">
-          <div className="visual-card large shimmer" />
-          <div className="visual-row">
-            <div className="visual-card shimmer" />
-            <div className="visual-card shimmer" />
+        <div className="hero-visual dashboard-hero">
+          <div className="dashboard-card main-card">
+            <div className="dash-header">
+              <span className="dash-pill">Dashboard KPI</span>
+              <span className="dash-status">
+                <span className="status-dot" />
+                Live
+              </span>
+            </div>
+            <div className="dash-metric">
+              <strong>24-72h</strong>
+              <span>Delai moyen de livraison</span>
+            </div>
+            <div className="dash-chart">
+              <div className="chart-bars">
+                <span className="bar bar-1" />
+                <span className="bar bar-2" />
+                <span className="bar bar-3" />
+                <span className="bar bar-4" />
+                <span className="bar bar-5" />
+                <span className="bar bar-6" />
+                <span className="bar bar-7" />
+                <span className="bar bar-8" />
+              </div>
+            </div>
+            <div className="dash-kpis">
+              <div className="kpi-pill">
+                <strong>10</strong>
+                <span>services actifs</span>
+              </div>
+              <div className="kpi-pill">
+                <strong>3</strong>
+                <span>categories</span>
+              </div>
+              <div className="kpi-pill">
+                <strong>5 min</strong>
+                <span>brief moyen</span>
+              </div>
+            </div>
           </div>
-          <div className="visual-strip shimmer" />
+          <div className="dashboard-sub">
+            <div className="mini-card">
+              <span className="mini-label">Conversion</span>
+              <strong>CTA clair</strong>
+              <span className="muted">WhatsApp + Email</span>
+            </div>
+            <div className="mini-card">
+              <span className="mini-label">Suivi</span>
+              <strong>Brief structure</strong>
+              <span className="muted">Validation rapide</span>
+            </div>
+          </div>
         </div>
       </section>
 
