@@ -1,54 +1,17 @@
-ï»¿import { useRouter } from "next/router";
+import { useRouter } from "next/router";
+import {
+  CONTACT_EMAIL,
+  HOSTING,
+  SERVICE_CATEGORIES,
+  SERVICES,
+  WHATSAPP_LINK,
+  servicePriceLabel,
+} from "../lib/catalog";
 
-const RATE = 600;
-const PRICES = {
-  A: 29900,
-  B: 59900,
-  CV: 9900,
-  LM: 4900,
-  HOST_MONTH: 2000,
-  HOST_YEAR: 24000,
-};
+const HOME_SERVICE_IDS = ["portfolio", "vitrine", "cv", "lettre"];
+const HOME_SERVICES = SERVICES.filter((service) => HOME_SERVICE_IDS.includes(service.id));
 
-const SERVICES = [
-  {
-    mode: "A",
-    title: "Portfolio candidat",
-    subtitle: "Emploi, stage, alternance",
-    details: "Positionnement, projets, preuves et contact direct.",
-    price: PRICES.A,
-  },
-  {
-    mode: "B",
-    title: "Vitrine entreprise",
-    subtitle: "Site business sur mesure",
-    details: "Architecture de conversion, pages de vente, preuves et CTA.",
-    price: PRICES.B,
-    from: true,
-  },
-  {
-    mode: "CV",
-    title: "CV professionnel",
-    subtitle: "Candidature ciblee",
-    details: "Structure claire, mots-cles metier, version finale exploitable.",
-    price: PRICES.CV,
-  },
-  {
-    mode: "LM",
-    title: "Lettre de motivation",
-    subtitle: "Emploi, universite, bourse",
-    details: "Argumentaire adapte au poste ou programme vise.",
-    price: PRICES.LM,
-  },
-];
-
-function formatCfa(value) {
-  return value.toLocaleString("fr-FR");
-}
-
-function formatUsd(value) {
-  return (value / RATE).toFixed(2);
-}
+const formatUsd = (value) => (value / 600).toFixed(2);
 
 export default function HomePage() {
   const router = useRouter();
@@ -64,8 +27,9 @@ export default function HomePage() {
           </div>
         </div>
         <div className="header-actions">
-          <a className="btn btn-light" href="mailto:senirolamadokou@gmail.com">Email</a>
-          <a className="btn btn-primary" href="https://wa.me/22892092572" target="_blank" rel="noreferrer">WhatsApp</a>
+          <a className="btn btn-light" href="/services">Voir tous les services</a>
+          <a className="btn btn-light" href={`mailto:${CONTACT_EMAIL}`}>Email</a>
+          <a className="btn btn-primary" href={WHATSAPP_LINK} target="_blank" rel="noreferrer">WhatsApp</a>
         </div>
       </header>
 
@@ -79,8 +43,8 @@ export default function HomePage() {
           </p>
           <div className="hero-kpi-grid">
             <article>
-              <strong>4 services</strong>
-              <span>Portfolio, Vitrine, CV, Lettre</span>
+              <strong>{SERVICES.length} services</strong>
+              <span>{SERVICE_CATEGORIES.map((cat) => cat.label).join(" · ")}</span>
             </article>
             <article>
               <strong>24h - 72h</strong>
@@ -110,20 +74,25 @@ export default function HomePage() {
         </div>
 
         <div className="service-grid home-grid">
-          {SERVICES.map((service) => (
-            <article className="service-tile" key={service.mode}>
+          {HOME_SERVICES.map((service) => (
+            <article className="service-tile" key={service.id}>
               <h3>{service.title}</h3>
-              <p className="muted">{service.subtitle}</p>
-              <p>{service.details}</p>
-              <div className="price-line strong">
-                {service.from ? "A partir de " : ""}
-                {formatCfa(service.price)} CFA (~${formatUsd(service.price)})
-              </div>
-              <button className="btn btn-primary block" type="button" onClick={() => router.push(`/service?mode=${service.mode}`)}>
+              <p className="muted">{service.short}</p>
+              <p>{service.cardDescription}</p>
+              <div className="price-line strong">{servicePriceLabel(service)}</div>
+              <button
+                className="btn btn-primary block"
+                type="button"
+                onClick={() => router.push(`/order/${service.id}`)}
+              >
                 Continuer
               </button>
             </article>
           ))}
+        </div>
+
+        <div className="actions">
+          <a className="btn btn-light" href="/services">Voir tous les services</a>
         </div>
       </section>
 
@@ -131,15 +100,15 @@ export default function HomePage() {
         <div className="pricing-ribbon">
           <article>
             <h4>Hebergement mensuel</h4>
-            <p>{formatCfa(PRICES.HOST_MONTH)} CFA (~${formatUsd(PRICES.HOST_MONTH)}) / mois</p>
+            <p>{HOSTING.monthly.toLocaleString("fr-FR")} CFA (~${formatUsd(HOSTING.monthly)}) / mois</p>
           </article>
           <article>
             <h4>Hebergement annuel</h4>
-            <p>{formatCfa(PRICES.HOST_YEAR)} CFA (~${formatUsd(PRICES.HOST_YEAR)}) / an</p>
+            <p>{HOSTING.yearly.toLocaleString("fr-FR")} CFA (~${formatUsd(HOSTING.yearly)}) / an</p>
           </article>
           <article>
             <h4>Contact direct</h4>
-            <p>senirolamadokou@gmail.com | +228 92 09 25 72</p>
+            <p>{CONTACT_EMAIL} | +228 92 09 25 72</p>
           </article>
         </div>
       </section>

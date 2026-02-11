@@ -401,6 +401,13 @@ h1, h2, h3 {
   gap: 14px;
 }
 
+label {
+  display: block;
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
 .span-full {
   grid-column: 1 / -1;
 }
@@ -445,6 +452,13 @@ textarea {
 .consent-line {
   margin-top: 18px;
   font-weight: 600;
+}
+
+.actions {
+  margin-top: 18px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .notice {
